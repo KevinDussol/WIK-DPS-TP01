@@ -1,0 +1,29 @@
+# Stage 1: Build Stage
+FROM node:14 AS build
+WORKDIR /TP01
+
+# Installe les dépendances.
+COPY package*.json ./
+RUN npm install
+
+# Copie les fichiers du code source dans l'étape de build et transpile l'application.
+COPY . .
+RUN npx tsc
+
+# Stage 2: Execution Stage
+FROM node:14 AS execution
+WORKDIR /TP01
+
+# Copiez uniquement les fichiers nécessaires depuis l'étape de build.
+COPY --from=build /TP01/build ./build
+COPY --from=build /TP01/package.json .
+
+#Creation de l'utilisateur sans privilège
+RUN adduser kevin
+
+# l'Utilisateur spécifique pour l'exécution de l'application.
+USER kevin
+
+# Commande de démarrage de l'application.
+CMD ["node", "./build/index.js"]
+
