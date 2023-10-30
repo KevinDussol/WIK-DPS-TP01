@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  my_app:
+    build:
+      context: . # Chemin vers le répertoire contenant le Dockerfile et le code source
+      dockerfile: ./Dockerfile  # Chemin vers le Dockerfile
+    
+    expose:
+      - '8080'  # Mappage du port 8080 du conteneur sur le port 4444 de l'hôte
+    environment:
+      - PING_LISTEN_PORT=8080
+
+    deploy:
+      replicas: 4 #pour repliquer le conteneur
+
+    restart: always
+
+    networks:
+      - front-network
+
+  proxy:
+
+    image: nginx:latest
+
+    ports:
+     - 8081:8080
+
+    depends_on:
+      - my_app
+    
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    
+    networks:
+      - front-network
+
+networks:
+  front-network:
+    driver: bridge
+
+volumes:
+  db_data:
